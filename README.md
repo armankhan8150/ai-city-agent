@@ -39,14 +39,14 @@ Latest news:
 
 ## Project Structure
 
-`
+```text
 city-agent/
-  main.py          # Agent, tools, and chat loop
-  requirements.txt # Python dependencies
-  .env.example     # Environment variable template
-  .gitignore       # Files excluded from Git
-  README.md        # This file
-`
+├── main.py              # Agent, tools, and chat loop
+├── requirements.txt     # Python dependencies
+├── .env.example         # Environment variable template
+├── .gitignore           # Files excluded from Git
+├── LICENSE              # Project license
+└── README.md            # Project documentation
 
 ## Setup
 
