@@ -1,168 +1,155 @@
 # AI City Agent
 
-A human-in-the-loop AI assistant that provides real-time **weather** and **news** information for any city.
+A tool-calling AI assistant that fetches real-time city weather and news with a strict human-in-the-loop (HITL) approval middleware built with LangChain, Mistral AI, Tavily, and OpenWeatherMap.
 
-Built with [LangChain](https://www.langchain.com/), [Mistral AI](https://mistral.ai/), and [Tavily](https://tavily.com/).
+---
+
+## How It Works
+
+```
+User Query ("What's the weather and news in Karachi?")
+    │
+    ▼
+┌──────────────────┐
+│   Mistral LLM     │  ──→  Decides which tools to call based on query intent
+└──────────────────┘
+    │
+    ▼
+┌──────────────────────────────┐
+│  HITL Approval Middleware     │  ──→  Pauses execution, shows planned tool call
+│  (Human confirms or denies)   │       User must explicitly approve before any
+└──────────────────────────────┘       external API is called
+    │
+    ├── Approved ──→ Execute tool (Weather API or News Search)
+    │
+    └── Denied  ──→ LLM reports denial, does not fabricate data
+    │
+    ▼
+┌──────────────────┐
+│   Final Response  │  ──→  Synthesized answer from approved tool results only
+└──────────────────┘
+```
+
+### Key Design Decisions
+- **Human-in-the-loop by design**: no external API call happens without explicit user approval
+- **Hallucination prevention**: denied tool calls are reported honestly; the LLM never invents data
+- **Dynamic tool selection**: LLM autonomously decides whether to call weather, news, or both based on query intent
+- **Transparent execution**: every tool call is shown to the user before it runs
+
+---
+
+## 🛠 Tech Stack
+
+| Component | Technology |
+|---|---|
+| LLM | Mistral AI (`mistral-small-2506`) |
+| Agent Framework | LangChain |
+| Weather Data | OpenWeatherMap API |
+| News Search | Tavily API |
+| CLI Output | Rich |
+| Language | Python 3.10+ |
+
+---
 
 ## Features
 
-- **Real-time weather** via the OpenWeatherMap API
-- **Latest city news** via Tavily Search
-- **Human-in-the-loop approval** — you confirm every tool call before it runs
-- **Honest AI behavior** — the agent never fabricates tool data; if a tool call is denied, it clearly communicates that to the user
-- **Tool-based decision making** — the LLM decides whether to use the weather tool, news tool, or both
+- 🔐 **HITL approval gate**: every tool call requires explicit confirmation
+- 🌤 **Real-time weather**: current conditions for any city via OpenWeatherMap
+- 📰 **Live news search**: latest city news via Tavily
+- 🤖 **Autonomous tool selection**: LLM picks the right tool(s) per query
+- 🚫 **Safe denial handling**: denied calls reported cleanly, no fabricated output
+- 🖥 **Rich CLI interface**: formatted terminal output
 
-## Demo
-
-```text
-AI City Agent | Type 'exit' to quit
-
-You: What's the weather and latest news in Tokyo?
-
-Agent wants to call 'get_weather'. Approve? (yes/no): yes
-
-Agent wants to call 'get_news'. Approve? (yes/no): yes
-
-Bot: Here's the update for Tokyo:
-
-Weather: clear sky, 28°C
-
-Latest news:
-- Tokyo hosts record-breaking summer festival ...
-```
-
-## Tech Stack
-
-| Component | Technology |
-|-----------|------------|
-| LLM | Mistral AI (`mistral-small-2506`) |
-| Agent Framework | LangChain |
-| Weather | OpenWeatherMap API |
-| News Search | Tavily |
-| CLI Output | Rich |
-| Language | Python |
+---
 
 ## Project Structure
 
-```text
-ai-city-agent/
-├── main.py              # Agent, tools, and chat loop
-├── requirements.txt     # Python dependencies
-├── .env.example         # Environment variable template
-├── .gitignore           # Files excluded from Git
-├── LICENSE              # Project license
-└── README.md            # Project documentation
+```
+├── main.py             # Agent, tools, HITL middleware, and chat loop
+├── requirements.txt
+├── .env.example
+├── LICENSE
+└── README.md
 ```
 
-## Setup
+---
 
-### 1. Clone the repository
+## Getting Started
+
+### Prerequisites
+- Python 3.10+
+- Mistral AI API key → [console.mistral.ai](https://console.mistral.ai)
+- Tavily API key → [tavily.com](https://tavily.com)
+- OpenWeatherMap API key → [openweathermap.org](https://openweathermap.org/api)
+
+### Installation
 
 ```bash
-git clone https://github.com/<your-username>/ai-city-agent.git
+# 1. Clone the repository
+git clone https://github.com/armankhan8150/ai-city-agent.git
 cd ai-city-agent
-```
 
-### 2. Create a virtual environment
-
-```bash
+# 2. Create a virtual environment
 python -m venv venv
-```
+source venv/bin/activate  # Windows: venv\Scripts\activate
 
-Activate the virtual environment:
-
-**macOS / Linux**
-
-```bash
-source venv/bin/activate
-```
-
-**Windows**
-
-```powershell
-venv\Scripts\activate
-```
-
-### 3. Install dependencies
-
-```bash
+# 3. Install dependencies
 pip install -r requirements.txt
-```
 
-### 4. Configure environment variables
-
-Copy `.env.example` to `.env`:
-
-**macOS / Linux**
-
-```bash
+# 4. Set up environment variables
 cp .env.example .env
+# Add your API keys to .env
 ```
 
-**Windows**
-
-```powershell
-copy .env.example .env
-```
-
-Then add your API keys to `.env`:
+### Environment Variables
 
 ```env
-OPENWEATHER_API_KEY=your_openweathermap_key
-TAVILY_API_KEY=your_tavily_key
-MISTRAL_API_KEY=your_mistral_key
+MISTRAL_API_KEY=your_mistral_api_key
+TAVILY_API_KEY=your_tavily_api_key
+OPENWEATHERMAP_API_KEY=your_openweathermap_api_key
 ```
 
-### API Keys
-
-| Variable | Provider |
-|----------|----------|
-| `OPENWEATHER_API_KEY` | [OpenWeatherMap](https://openweathermap.org/api) |
-| `TAVILY_API_KEY` | [Tavily](https://app.tavily.com/) |
-| `MISTRAL_API_KEY` | [Mistral AI](https://console.mistral.ai/) |
-
-> **Important:** Never commit your `.env` file or expose your API keys publicly. The `.env` file is excluded through `.gitignore`.
-
-### 5. Run the application
+### Run
 
 ```bash
 python main.py
 ```
 
-## How It Works
+---
 
-1. You enter a city-related question.
-2. The LLM analyzes the request and determines which tool or tools are required.
-3. Before each tool executes, the human-in-the-loop middleware pauses and asks for approval.
-4. If approved, the requested tool executes.
-5. The tool result is returned to the LLM.
-6. The LLM uses the tool results to formulate the final response.
-7. If a tool call is denied, the agent informs the user instead of fabricating information.
+## Example Interaction
 
-## Example Queries
+```
+You: What's the weather and latest news in Karachi?
 
-```text
-What's the weather in Tokyo?
+Agent wants to call: get_weather(city="Karachi")
+Approve? (yes/no): yes
 
-What is the latest news from London?
+Agent wants to call: get_news(query="Karachi latest news")
+Approve? (yes/no): yes
 
-Give me the weather and latest news for New York.
-
-What's happening in Dubai today?
+The weather in Karachi is currently 32°C with clear skies...
+Latest news: [synthesized from Tavily results]
 ```
 
-## Human-in-the-Loop
+---
 
-The agent uses human approval before executing external tools.
+## Roadmap
 
-For example:
+- [ ] Streamlit web UI
+- [ ] Support for multiple cities in one query
+- [ ] Approval history log
+- [ ] Support for additional tools (traffic, air quality)
 
-```text
-Agent wants to call 'get_weather'. Approve? (yes/no):
-```
+---
 
-This provides an additional layer of control and transparency over external tool execution.
+## Author
+
+**Arman Malik** — AI Engineer
+[LinkedIn](https://linkedin.com/in/arman-malik) · [GitHub](https://github.com/armankhan8150)
+
+---
 
 ## License
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+MIT License — see [LICENSE](LICENSE) for details.
